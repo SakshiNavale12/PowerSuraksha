@@ -21,4 +21,4 @@ setInterval(() => {
 
   console.log("Batch of simulated sensor data:", allData, "records");
   // In next steps, you’ll send `allData` to Kafka / API instead of console.log
-}, 1000);
+}, 2000);
