@@ -22,19 +22,25 @@ const consumeMotorData = async () => {
     consumer.run({
       eachMessage: async ({ message }) => {
         const data = JSON.parse(message.value.toString());
-        const { deviceId, current, temperature, pressure } = data;
+
+        // Broadcast real-time data to all connected clients
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'realtime', payload: data }));
+          }
+        });
 
         dataWindow.push({ ...data, receivedAt: Date.now() });
 
-        if (parseFloat(current) > 22.0) {
-          console.warn(`CRITICAL CURRENT: Motor ${deviceId} is drawing ${current}A!`);
-        }
-        if (temperature > 90.0) {
-          console.warn(`OVERHEATING ALERT: Motor ${deviceId} at ${temperature}°C!`);
-        }
-        if (pressure < 950 || pressure > 1100) {
-          console.warn(`PRESSURE ALERT: Motor ${deviceId} pressure unsafe! Pressure: ${pressure} hPa`);
-        }
+        // if (parseFloat(current) > 22.0) {
+        //   console.warn(`CRITICAL CURRENT: Motor ${deviceId} is drawing ${current}A!`);
+        // }
+        // if (temperature > 90.0) {
+        //   console.warn(`OVERHEATING ALERT: Motor ${deviceId} at ${temperature}°C!`);
+        // }
+        // if (pressure < 950 || pressure > 1100) {
+        //   console.warn(`PRESSURE ALERT: Motor ${deviceId} pressure unsafe! Pressure: ${pressure} hPa`);
+        // }
       },
     });
   } catch (error) {
@@ -96,16 +102,15 @@ setInterval(() => {
 
   const newSchedule = getScheduleFromModel(deviceAverages);
 
-  console.info("\nNew 10sec Motor Operational Schedule Generated:");
-  console.table(newSchedule);
+  // console.info("\nNew 10sec Motor Operational Schedule Generated:");
+  // console.table(newSchedule);
 
   
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ metrics: deviceAverages, schedule: newSchedule }));
+      client.send(JSON.stringify({ type: 'aggregate', payload: { metrics: deviceAverages, schedule: newSchedule } }));
     }
   });
-
   
   dataWindow = recentData;
 }, 10 * 1000);

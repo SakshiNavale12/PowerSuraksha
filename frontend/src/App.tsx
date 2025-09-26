@@ -1,6 +1,7 @@
 import TemperatureChart from './components/charts/TemperatureChart';
 import PressureChart from './components/charts/PressureChart';
 import CurrentChart from './components/charts/CurrentChart';
+import Device from './components/device/Device';
 
 function App() {
   return (
@@ -28,6 +29,9 @@ function App() {
                 <div className="p-5">
                   <CurrentChart />
                 </div>
+              </div>
+              <div>
+                <Device />
               </div>
             </div>
           </div>

@@ -1,33 +1,51 @@
 import { useState, useEffect } from 'react';
 
-export interface MotorData {
+export interface RealtimeMotorData {
+  deviceId: string;
+  temperature: string;
+  pressure: string;
+  current: string;
+  timestamp: string;
+}
+
+// This is for the aggregated data
+export interface AggregatedMotorData {
   avgCurrent: number;
   avgTemp: number;
   avgPressure: number;
 }
 
 export interface DeviceData {
-  [deviceId: string]: MotorData;
+  [deviceId: string]: AggregatedMotorData;
 }
 
 export interface ScheduleData {
   [deviceId: string]: string;
 }
 
-export interface MotorInfo {
+export interface AggregatedInfo {
   metrics: DeviceData;
   schedule: ScheduleData;
 }
 
 export const useMotorData = () => {
-  const [data, setData] = useState<MotorInfo>({ metrics: {}, schedule: {} });
+  const [aggregatedData, setAggregatedData] = useState<AggregatedInfo>({ metrics: {}, schedule: {} });
+  const [realtimeData, setRealtimeData] = useState<{ [deviceId: string]: RealtimeMotorData }>({});
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      setData(message);
+      if (message.type === 'aggregate') {
+        setAggregatedData(message.payload);
+      } else if (message.type === 'realtime') {
+        const newRealtimeData: RealtimeMotorData = message.payload;
+        setRealtimeData(prev => ({
+          ...prev,
+          [newRealtimeData.deviceId]: newRealtimeData,
+        }));
+      }
     };
 
     return () => {
@@ -35,5 +53,5 @@ export const useMotorData = () => {
     };
   }, []);
 
-  return data;
+  return { aggregatedData, realtimeData };
 };
