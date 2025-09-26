@@ -64,12 +64,12 @@ async function consumeMotorData() {
 
     // --- Part 2: Batch processing for scheduling every 10 minutes ---
 setInterval(() => {
-  const tenMinutesAgo = Date.now() - 10 * 60 * 1000; // 10 min window
+  const tenMinutesAgo = Date.now() - 10 * 1000; 
 
   const recentData = dataWindow.filter(d => d.receivedAt > tenMinutesAgo);
 
   if (recentData.length === 0) {
-    console.log("\n🕒 No data in the last 10 minutes to generate a schedule.");
+    console.log("\n🕒 No data in the last  10sec to generate a schedule.");
     return;
   }
 
@@ -97,10 +97,10 @@ setInterval(() => {
 
   const newSchedule = getScheduleFromModel(deviceAverages);
 
-  console.log("\n🕒 New 10-Minute Motor Operational Schedule Generated:");
+  console.log("\n🕒 New 10sec Motor Operational Schedule Generated:");
   console.table(newSchedule);
 
-}, 10 * 60 * 1000);
+}, 10 * 1000);
 
 
 }
