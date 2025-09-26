@@ -13,7 +13,21 @@ async function consumeData() {
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      console.log(`Received: ${message.value.toString()}`);
+      const data = JSON.parse(message.value.toString());
+
+      const temperature = parseFloat(data.temperature);
+      const current = parseFloat(data.current);
+      const pressure = parseFloat(data.pressure);
+
+      if (current > 4.5) {
+        console.log("⚡ ALERT: High current!", data);
+      }
+      if (temperature > 35) {
+        console.log("🔥 ALERT: Overheating!", data);
+      }
+      if (pressure < 950 || pressure > 1100) {
+        console.log("⚠️ ALERT: Unsafe pressure!", data);
+      }
     },
   });
 }
