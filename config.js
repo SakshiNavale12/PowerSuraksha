@@ -7,4 +7,7 @@ module.exports = {
   consumer: {
     groupId: "motor-group",
   },
+  firebase: {
+    databaseURL:"https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
+  }
 };

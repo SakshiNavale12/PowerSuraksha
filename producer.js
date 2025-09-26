@@ -1,33 +1,56 @@
-const { Kafka }=require("kafkajs");
-const config=require("./config");
-const kafka=new Kafka({
+// producer-rtdb.js
+const { Kafka } = require("kafkajs");
+const config = require("./config");
+const admin = require("firebase-admin");
+
+// Load Firebase service account
+const serviceAccount = require("./firebase-service-account.json");
+
+// initialize with databaseURL (Realtime DB)
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: config.firebase.databaseURL || "https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+
+const db = admin.database();
+const kafka = new Kafka({
   clientId: config.kafka.clientId,
   brokers: config.kafka.brokers,
 });
 const producer = kafka.producer();
 
+function getBiasedCurrent() {
+  const p = Math.random();
+  if (p < 0.49) return (5 + Math.random() * 4.9).toFixed(2);
+  if (p < 0.73) return (10 + Math.random() * 4.9).toFixed(2);
+  if (p < 0.97) return (15 + Math.random() * 5).toFixed(2);
+  return (20.1 + Math.random() * 4.9).toFixed(2);
+}
+
 const sendMotorData = async () => {
   try {
-await producer.connect();
-console.info("Producer connected to Kafka");
+    await producer.connect();
+    console.info("Producer connected to Kafka");
 
-  setInterval(async () => {
-    const messages = [];
+    // WARNING: for initial testing use smaller batch/longer interval. See note below.
+    setInterval(async () => {
+      const messages = [];
+      const updates = {}; // multi-path updates object
+
+      const baseRef = db.ref('motorData');
+
       for (let i = 1; i <= 100; i++) {
         const data = {
           deviceId: `motor-${i}`,
-          temperature: (40 + Math.random() * 55).toFixed(2),
-          pressure: (900 + Math.random() * 200).toFixed(2),
-          current: getBiasedCurrent(),
+          temperature: parseFloat((40 + Math.random() * 55).toFixed(2)),
+          pressure: parseFloat((900 + Math.random() * 200).toFixed(2)),
+          current: parseFloat(getBiasedCurrent()),
           timestamp: new Date().toISOString(),
+          createdAt: admin.database.ServerValue.TIMESTAMP,
         };
         messages.push({ value: JSON.stringify(data) });
   }
 
-await producer.send({
-   topic: config.kafka.topic,
-  messages,
-});
 
       console.info(`Sent batch of 100 motor readings at ${new Date().toLocaleTimeString()}`);
     }, 2000);
@@ -36,21 +59,6 @@ await producer.send({
     process.exit(1);
   }
 };
-
-function getBiasedCurrent() {
-  const p = Math.random();
-
-  if (p < 0.49) {
-   
-    return (5 + Math.random() * 4.9).toFixed(2);
-  } else if (p < 0.73) {
-    return (10 + Math.random() * 4.9).toFixed(2);
-  } else if (p < 0.97) {
-    return (15 + Math.random() * 5).toFixed(2);
-  } else {
-    return (20.1 + Math.random() * 4.9).toFixed(2);
-  }
-}
 
 const gracefulShutdown = async () => {
   console.info("Producer is shutting down...");

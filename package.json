@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
+    "firebase-admin": "^13.5.0",
     "kafkajs": "^2.2.4",
+    "ml-kmeans": "^6.0.0",
     "tailwindcss": "^4.1.13",
     "ws": "^8.18.0"
   },
