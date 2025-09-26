@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMotorData } from '../../hooks/useMotorData';
+import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 
 // Basic styling for the container holding all the cards
 const containerStyle: React.CSSProperties = {
@@ -39,7 +39,7 @@ const metricStyle: React.CSSProperties = {
 };
 
 export default function Device() {
-  const { realtimeData } = useMotorData();
+  const realtimeData = useRealtimeMotorData();
 
   // If there's no data yet, you can show a loading message
   if (Object.keys(realtimeData).length === 0) {
