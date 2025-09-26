@@ -1,5 +1,8 @@
 const { Kafka } = require("kafkajs");
 const config = require("./config");
+const WebSocket = require("ws");
+
+const wss = new WebSocket.Server({ port: 8080 });
 
 const kafka = new Kafka({
   clientId: "motor-consumer",
@@ -48,7 +51,7 @@ const getScheduleFromModel = (deviceAverages) => {
     const { avgCurrent, avgTemp, avgPressure } = deviceAverages[deviceId];
 
     if (avgCurrent > 20.0 || avgTemp > 85.0 || avgPressure < 950 || avgPressure > 1100) {
-      schedule[deviceId] = "❌ Excluded (Maintenance needed)";
+      schedule[deviceId] = "Excluded (Maintenance needed)";
     } else if (avgCurrent >= 15.0) {
       schedule[deviceId] = "Evening slot (Heavy Load Operations)";
     } else if (avgCurrent >= 10.0) {
@@ -96,6 +99,13 @@ setInterval(() => {
   console.info("\nNew 10sec Motor Operational Schedule Generated:");
   console.table(newSchedule);
 
+  // Broadcast data to WebSocket clients
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ metrics: deviceAverages, schedule: newSchedule }));
+    }
+  });
+
   // Clean up old data from the window to prevent memory leak
   dataWindow = recentData;
 }, 10 * 1000);
@@ -105,6 +115,8 @@ const gracefulShutdown = async () => {
   try {
     await consumer.disconnect();
     console.info("Consumer disconnected from Kafka");
+    wss.close();
+    console.info("WebSocket server closed");
   } catch (error) {
     console.error("Error during graceful shutdown:", error);
   } finally {

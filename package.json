@@ -1,5 +1,15 @@
 {
   "dependencies": {
-    "kafkajs": "^2.2.4"
+    "@tailwindcss/vite": "^4.1.13",
+    "kafkajs": "^2.2.4",
+    "tailwindcss": "^4.1.13",
+    "ws": "^8.18.0"
+  },
+  "scripts": {
+    "install-frontend": "cd frontend && npm install",
+    "install-tailwind": "cd frontend && npm install -D tailwindcss postcss autoprefixer",
+    "init-tailwind": "cd frontend && npx tailwindcss init -p",
+    "install-recharts": "cd frontend && npm install recharts",
+    "install-tailwind-postcss": "cd frontend && npm install -D @tailwindcss/postcss"
   }
 }
