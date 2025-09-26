@@ -43,16 +43,16 @@ function getBiasedCurrent() {
   const p = Math.random();
 
   if (p < 0.49) {
-    // Morning slot (≈48-50%)
+   
     return (5 + Math.random() * 4.9).toFixed(2);
   } else if (p < 0.73) {
-    // Night slot (≈23-24%)
+    
     return (10 + Math.random() * 4.9).toFixed(2);
   } else if (p < 0.97) {
-    // Evening slot (≈23-24%)
+    
     return (15 + Math.random() * 5).toFixed(2);
   } else {
-    // Excluded (≈2-4%)
+    
     return (20.1 + Math.random() * 4.9).toFixed(2);
   }
 }
