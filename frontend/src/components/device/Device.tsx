@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
-
+import MotorControl from './MotorControl';
 // Basic styling for the container holding all the cards
 const containerStyle: React.CSSProperties = {
   display: 'flex',
@@ -48,7 +48,6 @@ export default function Device() {
 
   return (
     <div style={containerStyle}>
-        <h2>Device Data</h2>
       {Object.entries(realtimeData).map(([deviceId, data]) => (
         <div key={deviceId} style={cardStyle}>
           <h3 style={cardTitleStyle}>{deviceId}</h3>
@@ -65,6 +64,11 @@ export default function Device() {
             <strong>Current:</strong>
             <span>{parseFloat(data.current).toFixed(2)} A</span>
           </p>
+          <p style={metricStyle}>
+            <strong></strong>
+            <span>{parseFloat(data.current).toFixed(2)} A</span>
+          </p>
+           <MotorControl />
         </div>
       ))}
     </div>

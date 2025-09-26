@@ -1,41 +1,17 @@
-import TemperatureChart from './components/charts/TemperatureChart';
-import PressureChart from './components/charts/PressureChart';
-import CurrentChart from './components/charts/CurrentChart';
-import Device from './components/device/Device';
+import { Routes, Route } from 'react-router-dom';
+import Sidebar from './components/device/Sidebar';
+import HomePage from './components/device/HomePage';
+import AnalyticsPage from './components/device/AnalyticsPage';
 
 function App() {
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <header className="bg-gray-100 shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-black-900">Motor Monitoring Dashboard</h1>
-        </div>
-      </header>
-      <main>
-        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="bg-gray-100 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <TemperatureChart />
-                </div>
-              </div>
-              <div className="bg-gray-100 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <PressureChart />
-                </div>
-              </div>
-              <div className="bg-gray-100 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <CurrentChart />
-                </div>
-              </div>
-              <div>
-                <Device />
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <main className="flex-1 p-10 text-2xl font-bold bg-gray-100">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+        </Routes>
       </main>
     </div>
   );
