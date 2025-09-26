@@ -16,7 +16,7 @@ export default function CurrentChart() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="current" stroke="#ffc658" />
+        <Line type="monotone" dataKey="current" stroke="#ff0000ff" />
       </LineChart>
     </ResponsiveContainer>
   );

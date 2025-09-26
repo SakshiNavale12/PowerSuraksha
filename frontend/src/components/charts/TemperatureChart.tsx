@@ -16,7 +16,7 @@ export default function TemperatureChart() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="temperature" stroke="#8884d8" />
+        <Line type="monotone" dataKey="temperature" stroke="#0c00faff" />
       </LineChart>
     </ResponsiveContainer>
   );

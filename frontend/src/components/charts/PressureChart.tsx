@@ -16,7 +16,7 @@ export default function PressureChart() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="pressure" stroke="#82ca9d" />
+        <Line type="monotone" dataKey="pressure" stroke="#006125ff" />
       </LineChart>
     </ResponsiveContainer>
   );
