@@ -1,20 +1,18 @@
-const { Kafka } = require("kafkajs");
-const config = require("./config");
-
-const kafka = new Kafka({
+const { Kafka }=require("kafkajs");
+const config=require("./config");
+const kafka=new Kafka({
   clientId: config.kafka.clientId,
   brokers: config.kafka.brokers,
 });
-
 const producer = kafka.producer();
 
 const sendMotorData = async () => {
   try {
-    await producer.connect();
-    console.info("Producer connected to Kafka");
+await producer.connect();
+console.info("Producer connected to Kafka");
 
-    setInterval(async () => {
-      const messages = [];
+  setInterval(async () => {
+    const messages = [];
       for (let i = 1; i <= 100; i++) {
         const data = {
           deviceId: `motor-${i}`,
@@ -24,12 +22,12 @@ const sendMotorData = async () => {
           timestamp: new Date().toISOString(),
         };
         messages.push({ value: JSON.stringify(data) });
-      }
+  }
 
-      await producer.send({
-        topic: config.kafka.topic,
-        messages,
-      });
+await producer.send({
+   topic: config.kafka.topic,
+  messages,
+});
 
       console.info(`Sent batch of 100 motor readings at ${new Date().toLocaleTimeString()}`);
     }, 2000);
@@ -46,13 +44,10 @@ function getBiasedCurrent() {
    
     return (5 + Math.random() * 4.9).toFixed(2);
   } else if (p < 0.73) {
-    
     return (10 + Math.random() * 4.9).toFixed(2);
   } else if (p < 0.97) {
-    
     return (15 + Math.random() * 5).toFixed(2);
   } else {
-    
     return (20.1 + Math.random() * 4.9).toFixed(2);
   }
 }
