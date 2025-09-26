@@ -24,10 +24,6 @@ console.info("Producer connected to Kafka");
         messages.push({ value: JSON.stringify(data) });
   }
 
-await producer.send({
-   topic: config.kafka.topic,
-  messages,
-});
 
       console.info(`Sent batch of 100 motor readings at ${new Date().toLocaleTimeString()}`);
     }, 2000);
