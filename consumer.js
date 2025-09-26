@@ -99,14 +99,14 @@ setInterval(() => {
   console.info("\nNew 10sec Motor Operational Schedule Generated:");
   console.table(newSchedule);
 
-  // Broadcast data to WebSocket clients
+  
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify({ metrics: deviceAverages, schedule: newSchedule }));
     }
   });
 
-  // Clean up old data from the window to prevent memory leak
+  
   dataWindow = recentData;
 }, 10 * 1000);
 
