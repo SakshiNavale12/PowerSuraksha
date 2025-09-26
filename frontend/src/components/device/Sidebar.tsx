@@ -20,6 +20,12 @@ export default function Sidebar() {
         >
           Analytics
         </NavLink>
+        <NavLink 
+          to="/extrem" 
+          className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}
+        >
+          Maintainance Devices
+        </NavLink>
       </nav>
     </div>
   );

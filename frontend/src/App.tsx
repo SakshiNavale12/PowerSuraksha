@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Sidebar from './components/device/Sidebar';
 import HomePage from './components/device/HomePage';
 import AnalyticsPage from './components/device/AnalyticsPage';
+import Extrem from './components/Extrem/Extrem';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/extrem" element={<Extrem />} />
         </Routes>
       </main>
     </div>
