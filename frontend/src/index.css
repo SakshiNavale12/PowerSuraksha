@@ -1,0 +1,7 @@
+/* Minimal reset to let MUI own layout */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
