@@ -1,0 +1,7 @@
+/* Remove Vite template constraints to allow full-width layout */
+html, body, #root {
+  height: 100%;
+}
+body {
+  margin: 0;
+}
