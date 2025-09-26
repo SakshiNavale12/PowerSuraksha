@@ -1,12 +1,12 @@
 const TOTAL_DEVICES = 100;
 
 
-function generateSensorData(sensorId) {
+function generateSensorData(deviceId) {
   return {
-    sensorId,
-    temperature: Math.floor(Math.random() * 60) + 10, // 10 - 70 °C
-    pressure: Math.floor(Math.random() * 50) + 950,   // 950 - 1000 hPa
-    current: Math.floor(Math.random() * 10) + 1,      // 1 - 10 Amp
+    deviceId,
+    sensorTemperature: Math.floor(Math.random() * 70) + 40, // 10 - 70 °C
+    sensorPressure: Math.floor(Math.random() * 6) + 3,   // 950 - 1000 hPa
+    sensorCurrent: Math.floor(Math.random() * 11) + 8,      // 1 - 10 Amp
     timestamp: new Date().toISOString()
   };
 }
@@ -19,6 +19,6 @@ setInterval(() => {
     allData.push(data);
   }
 
-  console.log("Batch of simulated sensor data:", allData.length, "records");
-  // 🔹 In next steps, you’ll send `allData` to Kafka / API instead of console.log
-}, 2000);
+  console.log("Batch of simulated sensor data:", allData, "records");
+  // In next steps, you’ll send `allData` to Kafka / API instead of console.log
+}, 1000);
