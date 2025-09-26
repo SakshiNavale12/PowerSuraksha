@@ -48,14 +48,40 @@ const sendMotorData = async () => {
           timestamp: new Date().toISOString(),
           createdAt: admin.database.ServerValue.TIMESTAMP,
         };
-        messages.push({ value: JSON.stringify(data) });
-  }
 
+        // generate push key (without writing immediately)
+        const pushKey = baseRef.push().key;
+        updates[`motorData/${pushKey}`] = data;
 
-      console.info(`Sent batch of 100 motor readings at ${new Date().toLocaleTimeString()}`);
-    }, 2000);
-  } catch (error) {
-    console.error("Error starting producer:", error);
+        // kafka payload (we include the generated key so consumers can reference the db)
+        messages.push({
+          value: JSON.stringify({
+            ...data,
+            source: "realtime",
+            rtdbKey: pushKey,
+            batchId: Date.now()
+          })
+        });
+      }
+
+      try {
+        // single multi-path update (one HTTP request to RTDB)
+        await db.ref().update(updates);
+        console.info(`Stored ${Object.keys(updates).length} records in Realtime DB`);
+
+        // send to Kafka
+        await producer.send({
+          topic: config.kafka.topic,
+          messages,
+        });
+
+        console.info(`Sent batch of ${messages.length} motor readings at ${new Date().toLocaleTimeString()}`);
+      } catch (err) {
+        console.error("Error in batch processing:", err);
+      }
+    }, 2000); // 2s interval — change to 5000+ and/or reduce batch size for testing
+  } catch (err) {
+    console.error("Error starting producer:", err);
     process.exit(1);
   }
 };

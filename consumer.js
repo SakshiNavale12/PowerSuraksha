@@ -425,28 +425,11 @@ const consumeMotorData = async () => {
     consumer.run({
       eachMessage: async ({ message }) => {
         const data = JSON.parse(message.value.toString());
-
-        // Broadcast real-time data to all connected clients
-        wss.clients.forEach((client) => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'realtime', payload: data }));
-          }
-        });
+        const { deviceId, current, temperature, pressure } = data;
 
         // Add timestamp and store in data window
         dataWindow.push({ ...data, receivedAt: Date.now() });
 
-<<<<<<< Updated upstream
-        // if (parseFloat(current) > 22.0) {
-        //   console.warn(`CRITICAL CURRENT: Motor ${deviceId} is drawing ${current}A!`);
-        // }
-        // if (temperature > 90.0) {
-        //   console.warn(`OVERHEATING ALERT: Motor ${deviceId} at ${temperature}°C!`);
-        // }
-        // if (pressure < 950 || pressure > 1100) {
-        //   console.warn(`PRESSURE ALERT: Motor ${deviceId} pressure unsafe! Pressure: ${pressure} hPa`);
-        // }
-=======
         // Real-time alert system (commented out as requested)
         // const currentValue = parseFloat(current);
         // const tempValue = parseFloat(temperature);
@@ -463,7 +446,6 @@ const consumeMotorData = async () => {
             }));
           }
         });
->>>>>>> Stashed changes
       },
     });
   } catch (error) {
@@ -511,15 +493,8 @@ setInterval(async () => {
     };
   }
 
-<<<<<<< Updated upstream
-  const newSchedule = getScheduleFromModel(deviceAverages);
-
-  // console.info("\nNew 10sec Motor Operational Schedule Generated:");
-  // console.table(newSchedule);
-=======
   // Generate ML-based schedule with Firebase integration
   const { schedule: newSchedule, mlInsights } = await getScheduleFromModel(deviceAverages);
->>>>>>> Stashed changes
 
   // Store results in Firebase
   const scheduleData = {
@@ -536,13 +511,6 @@ setInterval(async () => {
   // Broadcast schedule to WebSocket clients
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-<<<<<<< Updated upstream
-      client.send(JSON.stringify({ type: 'aggregate', payload: { metrics: deviceAverages, schedule: newSchedule } }));
-    }
-  });
-  
-  dataWindow = recentData;
-=======
       client.send(JSON.stringify({ 
         type: 'schedule',
         metrics: deviceAverages, 
@@ -557,7 +525,6 @@ setInterval(async () => {
   const oneMinuteAgo = Date.now() - 60 * 1000;
   dataWindow = dataWindow.filter((d) => d.receivedAt > oneMinuteAgo);
 
->>>>>>> Stashed changes
 }, 10 * 1000);
 
 // Rest of your code remains the same...
