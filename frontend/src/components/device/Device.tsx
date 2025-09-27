@@ -2,7 +2,7 @@ import React from 'react';
 import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 import MotorControl from './MotorControl';
 import { Link } from 'react-router-dom';
-
+import { useExcludedDevices } from '../../context/ExcludedDevicesContext';
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -66,6 +66,7 @@ const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'curre
 
 export default function Device() {
   const realtimeData = useRealtimeMotorData();
+  const { excludedIds } = useExcludedDevices();
 
   if (Object.keys(realtimeData).length === 0) {
     return <div style={{ padding: '20px' }}>Loading device data...</div>;
@@ -73,7 +74,9 @@ export default function Device() {
 
   return (
     <div style={containerStyle}>
-      {Object.entries(realtimeData).map(([deviceId, data]) => {
+      {Object.entries(realtimeData)
+      .filter(([deviceId]) => !excludedIds.includes(deviceId))
+      .map(([deviceId, data]) => {
         const temperature = parseFloat(data.temperature);
         const pressure = parseFloat(data.pressure);
         const current = parseFloat(data.current); 

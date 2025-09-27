@@ -1,13 +1,27 @@
-import  { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAggregatedMotorData } from '../../hooks/useAggregatedMotorData';
+import { useExcludedDevices } from '../../context/ExcludedDevicesContext';
 
 const Extrem = () => {
+  const { setExcludedIds } = useExcludedDevices();
   const { schedule } = useAggregatedMotorData();
   const [motorStates, setMotorStates] = useState<{ [key: string]: boolean }>({});
 
   const maintenanceDevices = Object.entries(schedule).filter(
     ([, status]) => status === 'Excluded (Maintenance needed)'
   );
+
+  // update excluded IDs
+  useEffect(() => {
+    setExcludedIds(maintenanceDevices.map(([deviceId]) => deviceId));
+
+    // ✅ initialize all devices as ON by default
+    const initialStates: { [key: string]: boolean } = {};
+    maintenanceDevices.forEach(([deviceId]) => {
+      initialStates[deviceId] = true; // default ON
+    });
+    setMotorStates(initialStates);
+  }, [schedule]);
 
   const handleToggle = (deviceId: string) => {
     setMotorStates(prevStates => {
@@ -27,7 +41,10 @@ const Extrem = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
           {maintenanceDevices.map(([deviceId, status]) => (
-            <div key={deviceId} className="flex flex-row justify-between items-center border-l-4 p-4 shadow-md rounded-r-lg bg-red-100 border-red-500 text-red-800">
+            <div
+              key={deviceId}
+              className="flex flex-row justify-between items-center border-l-4 p-4 shadow-md rounded-r-lg bg-red-100 border-red-500 text-red-800"
+            >
               <div>
                 <h3 className="font-bold text-lg capitalize">{deviceId}</h3>
                 <p className="text-sm mt-1">{status}</p>
@@ -36,11 +53,11 @@ const Extrem = () => {
                 onClick={() => handleToggle(deviceId)}
                 className={`py-1.5 px-3 rounded-md text-sm font-semibold text-white shadow-sm transition-colors duration-200 ${
                   motorStates[deviceId]
-                    ? 'bg-green-600 hover:bg-green-700'      
-                    : 'bg-red-600 hover:bg-red-700'  
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
                 }`}
               >
-                {motorStates[deviceId] ? 'Turn on' : 'Turn off'}
+                {motorStates[deviceId] ? 'Turn on' : 'Turned on'}
               </button>
             </div>
           ))}
