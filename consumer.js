@@ -4,7 +4,6 @@ const WebSocket = require("ws");
 const KMeans = require("ml-kmeans");
 const admin = require('firebase-admin');
 
-// Initialize Firebase (if not already initialized by producer)
 if (!admin.apps.length) {
   const serviceAccount = require('./firebase-service-account.json');
   admin.initializeApp({
@@ -13,13 +12,11 @@ if (!admin.apps.length) {
   });
 }
 
-const firestoreDB = admin.firestore(); // For schedules and alerts
-const realtimeDB = admin.database(); // For historical motor data
+const firestoreDB = admin.firestore(); 
+const realtimeDB = admin.database(); 
 
-// WebSocket server for real-time data streaming
 const wss = new WebSocket.Server({ port: 8080 });
 
-// Kafka client configuration
 const kafka = new Kafka({
   clientId: "motor-consumer",
   brokers: config.kafka.brokers,
@@ -27,12 +24,9 @@ const kafka = new Kafka({
 
 const consumer = kafka.consumer({ groupId: config.consumer.groupId });
 
-// Data window for 10-second interval processing
 let dataWindow = [];
 
-// Firebase integration utilities
 const FirebaseUtils = {
-  // Store processed schedule results
   storeScheduleResults: async (scheduleData) => {
     try {
       const result = await firestoreDB.collection('scheduleResults').add({
@@ -50,7 +44,6 @@ const FirebaseUtils = {
     }
   },
 
-  // Fetch historical data for enhanced ML analysis
   fetchHistoricalData: async (deviceId = null, hours = 1) => {
     try {
       const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
@@ -67,10 +60,8 @@ const FirebaseUtils = {
           historicalData.push({ id: childSnapshot.key, ...record });
         });
       }
-
-      // Client-side filter if a specific deviceId is requested
       if (deviceId) {
-        return historicalData.filter(d => d.deviceId === deviceId).slice(-1000); // Limit results
+        return historicalData.filter(d => d.deviceId === deviceId).slice(-1000); 
       }
       
       console.info(`Fetched ${historicalData.length} historical records from Firebase`);
@@ -81,7 +72,6 @@ const FirebaseUtils = {
     }
   },
 
-  // Store alerts in Firebase
   storeAlert: async (alert) => {
     try {
       await firestoreDB.collection('alerts').add({
@@ -95,11 +85,7 @@ const FirebaseUtils = {
   }
 };
 
-/**
- * Enhanced ML utilities for better clustering (keeping your existing ML code)
- */
 const MLUtils = {
-  // Your existing ML utility functions remain the same
   normalizeFeatures: (dataPoints) => {
     if (dataPoints.length === 0) return dataPoints;
     
@@ -231,14 +217,10 @@ const MLUtils = {
   }
 };
 
-/**
- * Enhanced ML-based scheduling with Firebase integration
- */
 const getScheduleFromModel = async (deviceAverages) => {
   const schedule = {};
   console.info("\nRunning Enhanced K-Means clustering with Firebase integration...");
 
-  // Fetch historical data for better ML analysis
   const historicalData = await FirebaseUtils.fetchHistoricalData(null, 1);
   
   const dataPoints = [];
@@ -270,7 +252,6 @@ const getScheduleFromModel = async (deviceAverages) => {
   if (anomalies.length > 0) {
     console.info("Anomalies detected:", anomalies.map(a => `${a.deviceId}:${a.metric}(${a.severity})`).join(', '));
     
-    // Store high severity anomalies as alerts in Firebase
     for (const anomaly of anomalies.filter(a => a.severity === 'HIGH')) {
       await FirebaseUtils.storeAlert({
         type: 'ANOMALY_DETECTED',
@@ -304,7 +285,6 @@ const getScheduleFromModel = async (deviceAverages) => {
       return { schedule: ruleBasedSchedule, mlInsights: { method: 'rule-based', reason: 'poor-quality' } };
     }
 
-    // Your existing clustering logic remains the same...
     const originalCentroids = centroids.map(centroid => {
       const avgCurrentRange = [5, 25];
       const avgTempRange = [20, 100];   
@@ -392,9 +372,6 @@ const getScheduleFromModel = async (deviceAverages) => {
   }
 };
 
-/**
- * Fallback rule-based scheduling (unchanged)
- */
 const getRuleBasedSchedule = (deviceAverages) => {
   const schedule = {};
   console.info("Using rule-based scheduling fallback...");
@@ -416,9 +393,6 @@ const getRuleBasedSchedule = (deviceAverages) => {
   return schedule;
 };
 
-/**
- * Main Kafka consumer function (enhanced with Firebase)
- */
 const consumeMotorData = async () => {
   try {
     await consumer.connect();
@@ -430,15 +404,8 @@ const consumeMotorData = async () => {
         const data = JSON.parse(message.value.toString());
         const { deviceId, current, temperature, pressure } = data;
 
-        // Add timestamp and store in data window
         dataWindow.push({ ...data, receivedAt: Date.now() });
 
-        // Real-time alert system (commented out as requested)
-        // const currentValue = parseFloat(current);
-        // const tempValue = parseFloat(temperature);
-        // const pressureValue = parseFloat(pressure);
-
-        // Broadcast real-time data to WebSocket clients
         wss.clients.forEach((client) => {
           if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ 
@@ -457,9 +424,6 @@ const consumeMotorData = async () => {
   }
 };
 
-/**
- * Enhanced periodic ML-based schedule generation with Firebase storage
- */
 setInterval(async () => {
   const tenSecondsAgo = Date.now() - 10 * 1000;
   const recentData = dataWindow.filter((d) => d.receivedAt > tenSecondsAgo);
@@ -469,7 +433,6 @@ setInterval(async () => {
     return;
   }
 
-  // Aggregate device data
   const deviceData = {};
   recentData.forEach((d) => {
     if (!deviceData[d.deviceId]) {
@@ -496,10 +459,8 @@ setInterval(async () => {
     };
   }
 
-  // Generate ML-based schedule with Firebase integration
   const { schedule: newSchedule, mlInsights } = await getScheduleFromModel(deviceAverages);
 
-  // Store results in Firebase
   const scheduleData = {
     schedule: newSchedule,
     metrics: deviceAverages,
@@ -511,7 +472,6 @@ setInterval(async () => {
   console.info("\nNew 10-second Motor Operational Schedule Generated:");
   console.log(newSchedule);
 
-  // Broadcast schedule to WebSocket clients
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify({ 
@@ -530,7 +490,6 @@ setInterval(async () => {
 
 }, 10 * 1000);
 
-// Rest of your code remains the same...
 wss.on('connection', (ws) => {
   console.info("New WebSocket client connected");
   

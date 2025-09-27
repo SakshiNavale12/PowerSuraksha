@@ -1,12 +1,10 @@
-// producer-rtdb.js
+
 const { Kafka } = require("kafkajs");
 const config = require("./config");
 const admin = require("firebase-admin");
 
-// Load Firebase service account
 const serviceAccount = require("./firebase-service-account.json");
 
-// initialize with databaseURL (Realtime DB)
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: config.firebase.databaseURL || "https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -32,10 +30,9 @@ const sendMotorData = async () => {
     await producer.connect();
     console.info("Producer connected to Kafka");
 
-    // WARNING: for initial testing use smaller batch/longer interval. See note below.
     setInterval(async () => {
       const messages = [];
-      const updates = {}; // multi-path updates object
+      const updates = {}; 
 
       const baseRef = db.ref('motorData');
 
@@ -49,11 +46,9 @@ const sendMotorData = async () => {
           createdAt: admin.database.ServerValue.TIMESTAMP,
         };
 
-        // generate push key (without writing immediately)
         const pushKey = baseRef.push().key;
         updates[`motorData/${pushKey}`] = data;
 
-        // kafka payload (we include the generated key so consumers can reference the db)
         messages.push({
           value: JSON.stringify({
             ...data,
@@ -65,11 +60,9 @@ const sendMotorData = async () => {
       }
 
       try {
-        // single multi-path update (one HTTP request to RTDB)
         await db.ref().update(updates);
         console.info(`Stored ${Object.keys(updates).length} records in Realtime DB`);
 
-        // send to Kafka
         await producer.send({
           topic: config.kafka.topic,
           messages,
@@ -79,7 +72,7 @@ const sendMotorData = async () => {
       } catch (err) {
         console.error("Error in batch processing:", err);
       }
-    }, 2000); // 2s interval — change to 5000+ and/or reduce batch size for testing
+    }, 2000); 
   } catch (err) {
     console.error("Error starting producer:", err);
     process.exit(1);
