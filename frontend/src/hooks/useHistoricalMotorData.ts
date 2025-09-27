@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getDatabase, ref, query, orderByChild, startAt, endAt, get } from 'firebase/database';
+import { getDatabase, ref, query, orderByChild, startAt, endAt, get, DataSnapshot } from 'firebase/database';
 
 export interface HistoricalDataPoint {
   temperature: number;
@@ -34,7 +34,7 @@ export const useHistoricalMotorData = (deviceId: string, timeMinutes: number) =>
         const snapshot = await get(q);
         const fetchedData: HistoricalDataPoint[] = [];
         if (snapshot.exists()) {
-          snapshot.forEach((childSnapshot) => {
+          snapshot.forEach((childSnapshot: DataSnapshot) => {
             const record = childSnapshot.val();
             if (record.deviceId === deviceId) {
               fetchedData.push(record);
