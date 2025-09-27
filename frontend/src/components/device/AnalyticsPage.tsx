@@ -8,19 +8,19 @@ export default function AnalyticsPage() {
       <div className="bg-white  shadow rounded-lg">
         <div className="p-5">
             <p className='text-base pb-5'>X-Axis: Device ID, Y-Axis: Temperature (°C) </p>
-          <TemperatureChart />
+          <TemperatureChart dataKey="temperature" />
         </div>
       </div>
       <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
             <p className='text-base pb-5'>X-Axis: Device ID, Y-Axis: Pressure (hPa) </p>
-          <PressureChart />
+          <PressureChart dataKey="pressure" />
         </div>
       </div>
       <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
             <p className='text-base pb-5'>X-Axis: Device ID, Y-Axis: Current (A) </p>
-          <CurrentChart />
+          <CurrentChart dataKey="current" />
         </div>
       </div>
     </div>

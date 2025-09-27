@@ -13,7 +13,8 @@ if (!admin.apps.length) {
   });
 }
 
-const db = admin.firestore();
+const firestoreDB = admin.firestore(); // For schedules and alerts
+const realtimeDB = admin.database(); // For historical motor data
 
 // WebSocket server for real-time data streaming
 const wss = new WebSocket.Server({ port: 8080 });
@@ -34,7 +35,7 @@ const FirebaseUtils = {
   // Store processed schedule results
   storeScheduleResults: async (scheduleData) => {
     try {
-      const result = await db.collection('scheduleResults').add({
+      const result = await firestoreDB.collection('scheduleResults').add({
         schedule: scheduleData.schedule,
         metrics: scheduleData.metrics,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
@@ -53,22 +54,24 @@ const FirebaseUtils = {
   fetchHistoricalData: async (deviceId = null, hours = 1) => {
     try {
       const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
-      
-      let query = db.collection('motorData')
-        .where('createdAt', '>=', hoursAgo)
-        .orderBy('createdAt', 'desc')
-        .limit(1000);
-      
-      if (deviceId) {
-        query = query.where('deviceId', '==', deviceId);
-      }
-      
+      const motorDataRef = realtimeDB.ref('motorData');
+
+      let query = motorDataRef.orderByChild('timestamp').startAt(hoursAgo.toISOString());
+
       const snapshot = await query.get();
       const historicalData = [];
-      
-      snapshot.forEach(doc => {
-        historicalData.push({ id: doc.id, ...doc.data() });
-      });
+
+      if (snapshot.exists()) {
+        snapshot.forEach(childSnapshot => {
+          const record = childSnapshot.val();
+          historicalData.push({ id: childSnapshot.key, ...record });
+        });
+      }
+
+      // Client-side filter if a specific deviceId is requested
+      if (deviceId) {
+        return historicalData.filter(d => d.deviceId === deviceId).slice(-1000); // Limit results
+      }
       
       console.info(`Fetched ${historicalData.length} historical records from Firebase`);
       return historicalData;
@@ -81,7 +84,7 @@ const FirebaseUtils = {
   // Store alerts in Firebase
   storeAlert: async (alert) => {
     try {
-      await db.collection('alerts').add({
+      await firestoreDB.collection('alerts').add({
         ...alert,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         resolved: false

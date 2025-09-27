@@ -1,23 +1,32 @@
 import { useAggregatedMotorData } from '../../hooks/useAggregatedMotorData';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function CurrentChart() {
+interface ChartProps {
+  data?: any[];
+  dataKey?: string;
+}
+
+export default function CurrentChart({ data, dataKey = 'current' }: ChartProps) {
   const aggregatedData = useAggregatedMotorData();
-  const { metrics } = aggregatedData;
-  const chartData = Object.keys(metrics).map((deviceId) => ({
-    name: deviceId,
-    current: parseFloat(metrics[deviceId].avgCurrent.toFixed(2)),
-  }));
+
+  let chartData = data;
+  if (!chartData) {
+    const { metrics } = aggregatedData;
+    chartData = Object.keys(metrics).map((deviceId) => ({
+      name: deviceId,
+      [dataKey]: parseFloat(metrics[deviceId].avgCurrent.toFixed(2)),
+    }));
+  }
 
   return (
     <ResponsiveContainer width="100%" height={300} >
       <LineChart data={chartData} margin={{ top: 5, right: 20, left: 25, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={false} label={{ value: '', position: 'insideBottom', offset: -5 }} />
+        <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
         <YAxis label={{ value: '', angle: -90, position: 'insideLeft' }} tick={{ fontSize: 20 }}/>
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="current" name="Current Graph" stroke="#ff0000ff" dot={false} />
+        <Line type="monotone" dataKey={dataKey} name="Current" stroke="#ff0000ff" dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

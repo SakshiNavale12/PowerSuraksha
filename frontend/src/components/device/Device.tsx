@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 import MotorControl from './MotorControl';
+import { Link } from 'react-router-dom';
 
-// Your existing style objects remain unchanged
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -19,6 +19,7 @@ const cardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
   minWidth: '220px',
   flex: 1,
+  textDecoration: 'none',
 };
 
 const cardTitleStyle: React.CSSProperties = {
@@ -75,7 +76,7 @@ export default function Device() {
       {Object.entries(realtimeData).map(([deviceId, data]) => {
         const temperature = parseFloat(data.temperature);
         const pressure = parseFloat(data.pressure);
-        const current = parseFloat(data.current);
+        const current = parseFloat(data.current); 
 
         return (
           <div key={deviceId} style={cardStyle}>
@@ -103,6 +104,9 @@ export default function Device() {
             </p>
 
             <MotorControl />
+            <Link to={`/device/${deviceId}`} style={{ textDecoration: 'none', color: 'blue', marginTop: '10px', display: 'block' }}>
+              View Analytics
+            </Link>
           </div>
         );
       })}

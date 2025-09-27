@@ -4,6 +4,10 @@ import HomePage from './components/device/HomePage';
 import AnalyticsPage from './components/device/AnalyticsPage';
 import Scedule from './components/Extreme/Scedule';
 import Extreme from './components/Extreme/Extrem';
+import DeviceAnalytics from './components/device/DeviceAnalytics';
+
+// Initialize Firebase
+import './firebase-config';
 
 function App() {
   return (
@@ -15,6 +19,7 @@ function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/scedule" element={<Scedule />} />
           <Route path="/extreme" element={<Extreme />} />
+          <Route path="/device/:deviceId" element={<DeviceAnalytics />} />
         </Routes>
       </main>
     </div>
