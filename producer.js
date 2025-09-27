@@ -1,18 +1,7 @@
 // producer-rtdb.js
 const { Kafka } = require("kafkajs");
 const config = require("./config");
-const admin = require("firebase-admin");
 
-// Load Firebase service account
-const serviceAccount = require("./firebase-service-account.json");
-
-// initialize with databaseURL (Realtime DB)
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: config.firebase.databaseURL || "https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
-});
-
-const db = admin.database();
 const kafka = new Kafka({
   clientId: config.kafka.clientId,
   brokers: config.kafka.brokers,
@@ -35,9 +24,6 @@ const sendMotorData = async () => {
     // WARNING: for initial testing use smaller batch/longer interval. See note below.
     setInterval(async () => {
       const messages = [];
-      const updates = {}; // multi-path updates object
-
-      const baseRef = db.ref('motorData');
 
       for (let i = 1; i <= 100; i++) {
         const data = {
@@ -46,30 +32,20 @@ const sendMotorData = async () => {
           pressure: parseFloat((900 + Math.random() * 200).toFixed(2)),
           current: parseFloat(getBiasedCurrent()),
           timestamp: new Date().toISOString(),
-          createdAt: admin.database.ServerValue.TIMESTAMP,
         };
 
-        // generate push key (without writing immediately)
-        const pushKey = baseRef.push().key;
-        updates[`motorData/${pushKey}`] = data;
-
-        // kafka payload (we include the generated key so consumers can reference the db)
+        // Kafka payload
         messages.push({
           value: JSON.stringify({
             ...data,
             source: "realtime",
-            rtdbKey: pushKey,
             batchId: Date.now()
           })
         });
       }
 
       try {
-        // single multi-path update (one HTTP request to RTDB)
-        await db.ref().update(updates);
-        console.info(`Stored ${Object.keys(updates).length} records in Realtime DB`);
-
-        // send to Kafka
+        // Send to Kafka only
         await producer.send({
           topic: config.kafka.topic,
           messages,

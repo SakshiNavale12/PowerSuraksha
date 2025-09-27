@@ -4,16 +4,16 @@ const WebSocket = require("ws");
 const KMeans = require("ml-kmeans");
 const admin = require('firebase-admin');
 
-// Initialize Firebase (if not already initialized by producer)
-if (!admin.apps.length) {
-  const serviceAccount = require('./firebase-service-account.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: config.firebase.databaseURL
-  });
-}
+// Load Firebase service account
+const serviceAccount = require('./firebase-service-account.json');
 
-const db = admin.firestore();
+// initialize with databaseURL (Realtime DB)
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: config.firebase.databaseURL || "https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+
+const db = admin.database();
 
 // WebSocket server for real-time data streaming
 const wss = new WebSocket.Server({ port: 8080 });
@@ -34,15 +34,20 @@ const FirebaseUtils = {
   // Store processed schedule results
   storeScheduleResults: async (scheduleData) => {
     try {
-      const result = await db.collection('scheduleResults').add({
+      const baseRef = db.ref('scheduleResults');
+      const pushKey = baseRef.push().key;
+      const scheduleRef = baseRef.child(pushKey);
+      
+      await scheduleRef.set({
         schedule: scheduleData.schedule,
         metrics: scheduleData.metrics,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        mlInsights: scheduleData.mlInsights || null
+        timestamp: admin.database.ServerValue.TIMESTAMP,
+        mlInsights: scheduleData.mlInsights || null,
+        criticalDevices: scheduleData.criticalDevices || 0
       });
       
-      console.info(`Schedule results stored in Firebase: ${result.id}`);
-      return result.id;
+      console.info(`Enhanced analysis results stored in Firebase: ${pushKey}`);
+      return pushKey;
     } catch (error) {
       console.error("Error storing schedule in Firebase:", error);
       return null;
@@ -52,22 +57,17 @@ const FirebaseUtils = {
   // Fetch historical data for enhanced ML analysis
   fetchHistoricalData: async (deviceId = null, hours = 1) => {
     try {
-      const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
+      const hoursAgo = Date.now() - (hours * 60 * 60 * 1000);
       
-      let query = db.collection('motorData')
-        .where('createdAt', '>=', hoursAgo)
-        .orderBy('createdAt', 'desc')
-        .limit(1000);
+      // For Realtime Database, we need to fetch and filter client-side
+      const snapshot = await db.ref('motorData').orderByChild('createdAt').startAt(hoursAgo).limitToLast(1000).once('value');
+      let historicalData = [];
       
-      if (deviceId) {
-        query = query.where('deviceId', '==', deviceId);
-      }
-      
-      const snapshot = await query.get();
-      const historicalData = [];
-      
-      snapshot.forEach(doc => {
-        historicalData.push({ id: doc.id, ...doc.data() });
+      snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        if (!deviceId || data.deviceId === deviceId) {
+          historicalData.push({ id: childSnapshot.key, ...data });
+        }
       });
       
       console.info(`Fetched ${historicalData.length} historical records from Firebase`);
@@ -81,9 +81,13 @@ const FirebaseUtils = {
   // Store alerts in Firebase
   storeAlert: async (alert) => {
     try {
-      await db.collection('alerts').add({
+      const baseRef = db.ref('alerts');
+      const pushKey = baseRef.push().key;
+      const alertRef = baseRef.child(pushKey);
+      
+      await alertRef.set({
         ...alert,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.database.ServerValue.TIMESTAMP,
         resolved: false
       });
     } catch (error) {
@@ -430,6 +434,22 @@ const consumeMotorData = async () => {
         // Add timestamp and store in data window
         dataWindow.push({ ...data, receivedAt: Date.now() });
 
+        // Store in Firebase Realtime Database
+        try {
+          const baseRef = db.ref('motorData');
+          const pushKey = baseRef.push().key;
+          const firebaseData = {
+            ...data,
+            rtdbKey: pushKey,
+            createdAt: admin.database.ServerValue.TIMESTAMP,
+          };
+          
+          await db.ref(`motorData/${pushKey}`).set(firebaseData);
+          console.info(`Stored data for ${deviceId} in Firebase`);
+        } catch (firebaseError) {
+          console.error("Error storing data in Firebase:", firebaseError.message);
+        }
+
         // Real-time alert system (commented out as requested)
         // const currentValue = parseFloat(current);
         // const tempValue = parseFloat(temperature);
@@ -527,7 +547,6 @@ setInterval(async () => {
 
 }, 10 * 1000);
 
-// Rest of your code remains the same...
 wss.on('connection', (ws) => {
   console.info("New WebSocket client connected");
   
