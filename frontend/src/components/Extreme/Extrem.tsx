@@ -36,11 +36,11 @@ const Extrem = () => {
                 onClick={() => handleToggle(deviceId)}
                 className={`py-1.5 px-3 rounded-md text-sm font-semibold text-white shadow-sm transition-colors duration-200 ${
                   motorStates[deviceId]
-                    ? 'bg-red-600 hover:bg-red-700'      
-                    : 'bg-green-600 hover:bg-green-700'  
+                    ? 'bg-green-600 hover:bg-green-700'      
+                    : 'bg-red-600 hover:bg-red-700'  
                 }`}
               >
-                {motorStates[deviceId] ? 'Turn Off' : 'Turn On'}
+                {motorStates[deviceId] ? 'Turn on' : 'Turn off'}
               </button>
             </div>
           ))}

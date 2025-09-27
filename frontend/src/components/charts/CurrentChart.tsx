@@ -6,18 +6,18 @@ export default function CurrentChart() {
   const { metrics } = aggregatedData;
   const chartData = Object.keys(metrics).map((deviceId) => ({
     name: deviceId,
-    current: metrics[deviceId].avgCurrent,
+    current: parseFloat(metrics[deviceId].avgCurrent.toFixed(2)),
   }));
 
   return (
     <ResponsiveContainer width="100%" height={300} >
       <LineChart data={chartData} margin={{ top: 5, right: 20, left: 25, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={false} label={{ value: 'Devices', position: 'insideBottom', offset: -5 }} />
-        <YAxis label={{ value: 'Current (A)', angle: -90, position: 'insideLeft' }} />
+        <XAxis dataKey="name" tick={false} label={{ value: '', position: 'insideBottom', offset: -5 }} />
+        <YAxis label={{ value: '', angle: -90, position: 'insideLeft' }} tick={{ fontSize: 20 }}/>
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="current" stroke="#ff0000ff" dot={false} />
+        <Line type="monotone" dataKey="current" name="Current Graph" stroke="#ff0000ff" dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

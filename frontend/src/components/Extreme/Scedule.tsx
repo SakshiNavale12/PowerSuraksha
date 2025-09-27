@@ -4,9 +4,9 @@ const Scedule = () => {
   const { schedule } = useAggregatedMotorData();
   const statusPriority: { [key: string]: number } = {
     'Monitoring Required (Reduced Load)': 1,
-    'Evening slot (Heavy Load)': 2,
-    'Night slot (Medium Load)': 3,
-    'Morning slot (Light Load)': 4,
+    'Evening slot (Heavy Load)': 3,
+    'Night slot (Medium Load)': 4,
+    'Morning slot (Light Load)': 2,
   };
 
   const operationalSchedule = Object.entries(schedule)
@@ -24,15 +24,16 @@ const Scedule = () => {
     if (status.includes('Monitoring')) {
       return 'bg-yellow-100 border-yellow-500 text-yellow-800';
     }
+     if (status.includes('Light')) {
+      return 'bg-green-100 border-green-500 text-green-800';
+    }
     if (status.includes('Heavy')) {
       return 'bg-orange-100 border-orange-500 text-orange-800';
     }
     if (status.includes('Medium')) {
       return 'bg-blue-100 border-blue-500 text-blue-800';
     }
-    if (status.includes('Light')) {
-      return 'bg-green-100 border-green-500 text-green-800';
-    }
+   
     return 'bg-gray-100 border-gray-400';
   };
 
@@ -43,7 +44,7 @@ const Scedule = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Motor Operational Schedule</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
         {operationalSchedule.map(([deviceId, status]) => (
           <div key={deviceId} className={`border-l-4 p-4 shadow-md rounded-r-lg ${getStatusColor(status)}`}>
             <h3 className="font-bold text-lg capitalize">{deviceId}</h3>

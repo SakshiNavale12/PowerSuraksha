@@ -9,7 +9,27 @@ export interface RealtimeMotorData {
 }
 
 export const useRealtimeMotorData = () => {
-  const [realtimeData, setRealtimeData] = useState<{ [deviceId: string]: RealtimeMotorData }>({});
+  const CACHE_KEY = 'realtimeMotorDataCache';
+
+  // Initialize state from localStorage for an instant UI update.
+  const [realtimeData, setRealtimeData] = useState<{ [deviceId: string]: RealtimeMotorData }>(() => {
+    try {
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      return cachedData ? JSON.parse(cachedData) : {};
+    } catch (error) {
+      console.error("Error reading real-time data from localStorage:", error);
+      return {};
+    }
+  });
+
+  // A separate effect to save data to cache whenever it changes.
+  useEffect(() => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(realtimeData));
+    } catch (error) {
+      console.error("Error writing real-time data to localStorage:", error);
+    }
+  }, [realtimeData]);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
