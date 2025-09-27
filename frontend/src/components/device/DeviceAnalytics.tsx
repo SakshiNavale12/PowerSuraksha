@@ -46,7 +46,7 @@ const DeviceAnalytics = () => {
       {!loading && data.length === 0 && <p>No data available for the selected time range.</p>}
 
       {data.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-1 xl:grid-cols-1">
           <div className="bg-white shadow rounded-lg p-5">
             <h3 className="text-lg font-semibold mb-2">Temperature (°C)</h3>
             <p className='text-sm pb-5'>X-Axis: Time, Y-Axis: Temperature</p>
