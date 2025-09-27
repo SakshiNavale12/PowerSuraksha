@@ -10,11 +10,11 @@ export default function CurrentChart() {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+    <ResponsiveContainer width="100%" height={300} >
+      <LineChart data={chartData} margin={{ top: 5, right: 20, left: 25, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" tick={false} label={{ value: 'Devices', position: 'insideBottom', offset: -5 }} />
-        <YAxis label={{ value: 'Avg Current (A)', angle: -90, position: 'insideLeft' }} />
+        <YAxis label={{ value: 'Current (A)', angle: -90, position: 'insideLeft' }} />
         <Tooltip />
         <Legend />
         <Line type="monotone" dataKey="current" stroke="#ff0000ff" dot={false} />

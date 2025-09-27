@@ -27,9 +27,7 @@ export const useAggregatedMotorData = () => {
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      // The message type is now 'schedule' and the data is not in a 'payload' object.
       if (message.type === 'schedule') {
-        // We only need the metrics and schedule for the current UI.
         setAggregatedData({ metrics: message.metrics, schedule: message.schedule });
       }
     };

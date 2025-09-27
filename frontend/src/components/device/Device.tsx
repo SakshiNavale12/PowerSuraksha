@@ -35,19 +35,13 @@ const metricStyle: React.CSSProperties = {
   fontSize: '1rem',
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center', // Align items vertically
+  alignItems: 'center', 
 };
 
-/**
- * Helper function to determine the color-coded badge style based on value and type.
- * @param {number} value - The metric value.
- * @param {'temperature' | 'pressure' | 'current'} type - The type of metric.
- * @returns {string} Tailwind CSS class string.
- */
 const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'current'): string => {
   const baseStyle = 'rounded-full px-2.5 py-1 text-sm font-semibold';
 
-  // 🟢 Green for Normal, 🟠 Amber for Medium/Warning, 🔴 Red for High/Critical
+  
   switch (type) {
     case 'temperature':
       if (value > 85) return `${baseStyle} bg-red-100 text-red-800`;
@@ -79,7 +73,6 @@ export default function Device() {
   return (
     <div style={containerStyle}>
       {Object.entries(realtimeData).map(([deviceId, data]) => {
-        // Parse values once for cleaner usage
         const temperature = parseFloat(data.temperature);
         const pressure = parseFloat(data.pressure);
         const current = parseFloat(data.current);

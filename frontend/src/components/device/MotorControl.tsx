@@ -1,14 +1,12 @@
 import  { useState } from 'react';
 
 export default function MotorControl() {
-  // State to track if the motor is on or off. 'false' means off by default.
   const [isOn] = useState(false);
 
 
 
   return (
     <div className="mt-4 border-t border-gray-200 pt-4">
-      {/* Status Indicator */}
       <div className="mb-3 flex items-center justify-between">
         <p className="text-gray-500">Status:</p>
         <span

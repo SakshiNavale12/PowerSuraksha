@@ -17,7 +17,6 @@ export const useRealtimeMotorData = () => {
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'realtime') {
-        // The new message structure is flat, not nested in 'payload'.
         const { deviceId, data, timestamp } = message;
         const newRealtimeData: RealtimeMotorData = {
           deviceId: deviceId,

@@ -21,10 +21,16 @@ export default function Sidebar() {
           Analytics
         </NavLink>
         <NavLink 
-          to="/extrem" 
+          to="/extreme" 
           className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}
         >
           Maintainance Devices
+        </NavLink>
+        <NavLink 
+          to="/scedule" 
+          className={({ isActive }) => isActive ? `${linkClasses} ${activeLinkClasses}` : linkClasses}
+        >
+          Scedule Devices
         </NavLink>
       </nav>
     </div>
