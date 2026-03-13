@@ -42,7 +42,7 @@ function AppLayout() {
             <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
             <Route path="/extreme" element={<ProtectedRoute><Extreme /></ProtectedRoute>} />
-            <Route path="/scedule" element={<ProtectedRoute adminOnly><Scedule /></ProtectedRoute>} />
+            <Route path="/scedule" element={<ProtectedRoute><Scedule /></ProtectedRoute>} />
             <Route path="/device/:deviceId" element={<ProtectedRoute><DeviceAnalytics /></ProtectedRoute>} />
             <Route path="/register" element={<ProtectedRoute adminOnly><RegisterPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
