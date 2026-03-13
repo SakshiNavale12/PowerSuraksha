@@ -1,11 +1,7 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-// IMPORTANT: For better security in a production app, you should store these
-// values in environment variables (e.g., in a .env file).
-// For now, we will place them here to get it working.
-
-// --- PASTE YOUR WEB APP'S FIREBASE CONFIGURATION HERE ---
-// You can find this in your Firebase project settings.
 const firebaseConfig = {
   apiKey: "AIzaSyCztFtDtbOmcXojRvc6ZijjYZMTl7y-plc",
   authDomain: "megahack-ee214.firebaseapp.com",
@@ -16,7 +12,7 @@ const firebaseConfig = {
   appId: "1:1001742119207:web:16160ba86690ef52437902",
   measurementId: "G-8E4LLZZEGX"
 };
-// ---------------------------------------------------------
 
-// Initialize Firebase
-initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
