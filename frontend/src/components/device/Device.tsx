@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 import MotorControl from './MotorControl';
 import { Link } from 'react-router-dom';
 import { useExcludedDevices } from '../../context/ExcludedDevicesContext';
+
+const DEVICE_TYPES = [
+  { label: 'All Devices', value: 'all' },
+  { label: 'Motors', value: 'motor' },
+  { label: 'Pumps', value: 'pump' },
+  { label: 'Generators', value: 'generator' },
+  { label: 'Compressors', value: 'compressor' },
+];
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -67,15 +75,37 @@ const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'curre
 export default function Device() {
   const realtimeData = useRealtimeMotorData();
   const { excludedIds } = useExcludedDevices();
+  const [selectedType, setSelectedType] = useState('all');
 
   if (Object.keys(realtimeData).length === 0) {
     return <div style={{ padding: '20px' }}>Loading device data...</div>;
   }
 
   return (
+    <div>
+      <div style={{ padding: '0 20px 16px 20px' }}>
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: '1px solid #d1d5db',
+            fontSize: '1rem',
+            backgroundColor: '#fff',
+            cursor: 'pointer',
+            minWidth: '180px',
+          }}
+        >
+          {DEVICE_TYPES.map((type) => (
+            <option key={type.value} value={type.value}>{type.label}</option>
+          ))}
+        </select>
+      </div>
     <div style={containerStyle}>
       {Object.entries(realtimeData)
       .filter(([deviceId]) => !excludedIds.includes(deviceId))
+      .filter(([deviceId]) => selectedType === 'all' || deviceId.startsWith(selectedType + '-'))
       .map(([deviceId, data]) => {
         const temperature = parseFloat(data.temperature);
         const pressure = parseFloat(data.pressure);
@@ -113,6 +143,7 @@ export default function Device() {
           </div>
         );
       })}
+    </div>
     </div>
   );
 }
