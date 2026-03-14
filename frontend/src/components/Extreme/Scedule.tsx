@@ -1,7 +1,12 @@
 import { useAggregatedMotorData } from '../../hooks/useAggregatedMotorData';
+import { useAuth } from '../../context/AuthContext';
 
 const Scedule = () => {
   const { schedule } = useAggregatedMotorData();
+  const { profile } = useAuth();
+  const isOperator = profile?.role === 'operator';
+  const assignedDevices = profile?.assignedDevices ?? [];
+
   const statusPriority: { [key: string]: number } = {
     'Monitoring Required (Reduced Load)': 1,
     'Evening slot (Heavy Load)': 3,
@@ -10,7 +15,10 @@ const Scedule = () => {
   };
 
   const operationalSchedule = Object.entries(schedule)
-    .filter(([, status]) => status !== 'Excluded (Maintenance needed)')
+    .filter(([deviceId, status]) =>
+      status !== 'Excluded (Maintenance needed)' &&
+      (!isOperator || assignedDevices.some(t => deviceId.startsWith(t + '-')))
+    )
     .sort(([, statusA], [, statusB]) => {
       const priorityA = statusPriority[statusA] || 99;
       const priorityB = statusPriority[statusB] || 99;

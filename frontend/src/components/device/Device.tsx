@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 import MotorControl from './MotorControl';
 import { Link } from 'react-router-dom';
 import { useExcludedDevices } from '../../context/ExcludedDevicesContext';
+import { useAuth } from '../../context/AuthContext';
+
+const DEVICE_TYPES = [
+  { label: 'All Devices', value: 'all' },
+  { label: 'Motors', value: 'motor' },
+  { label: 'Pumps', value: 'pump' },
+  { label: 'Generators', value: 'generator' },
+  { label: 'Compressors', value: 'compressor' },
+];
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -36,13 +45,13 @@ const metricStyle: React.CSSProperties = {
   fontSize: '1rem',
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center', 
+  alignItems: 'center',
 };
 
 const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'current'): string => {
   const baseStyle = 'rounded-full px-2.5 py-1 text-sm font-semibold';
 
-  
+
   switch (type) {
     case 'temperature':
       if (value > 85) return `${baseStyle} bg-red-100 text-red-800`;
@@ -60,6 +69,7 @@ const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'curre
       return `${baseStyle} bg-green-100 text-green-800`;
 
     default:
+
       return `${baseStyle} bg-gray-100 text-gray-800`;
   }
 };
@@ -67,52 +77,82 @@ const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'curre
 export default function Device() {
   const realtimeData = useRealtimeMotorData();
   const { excludedIds } = useExcludedDevices();
+  const { profile } = useAuth();
+  const [selectedType, setSelectedType] = useState('all');
+
+  const isOperator = profile?.role === 'operator';
+  const assignedDevices = profile?.assignedDevices ?? [];
 
   if (Object.keys(realtimeData).length === 0) {
     return <div style={{ padding: '20px' }}>Loading device data...</div>;
   }
 
   return (
-    <div style={containerStyle}>
-      {Object.entries(realtimeData)
-      .filter(([deviceId]) => !excludedIds.includes(deviceId))
-      .map(([deviceId, data]) => {
-        const temperature = parseFloat(data.temperature);
-        const pressure = parseFloat(data.pressure);
-        const current = parseFloat(data.current); 
+    <div>
+      <div style={{ padding: '0 20px 16px 20px' }}>
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          style={{
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: '1px solid #d1d5db',
+            fontSize: '1rem',
+            backgroundColor: '#fff',
+            cursor: 'pointer',
+            minWidth: '180px',
+          }}
+        >
+          {DEVICE_TYPES.filter(type =>
+            type.value === 'all' || !isOperator || assignedDevices.includes(type.value)
+          ).map((type) => (
+            <option key={type.value} value={type.value}>{type.label}</option>
+          ))}
+        </select>
+      </div>
+      <div style={containerStyle}>
+        {Object.entries(realtimeData)
+          .filter(([deviceId]) => !excludedIds.includes(deviceId))
+          .filter(([deviceId]) => !isOperator || assignedDevices.some(type => deviceId.startsWith(type + '-')))
+          .filter(([deviceId]) => selectedType === 'all' || deviceId.startsWith(selectedType + '-'))
+          .map(([deviceId, data]) => {
+            const temperature = parseFloat(data.temperature);
+            const pressure = parseFloat(data.pressure);
+            const current = parseFloat(data.current);
 
-        return (
-          <div key={deviceId} style={cardStyle}>
-            <h3 style={cardTitleStyle}>{deviceId}</h3>
+            return (
+              <div key={deviceId} style={cardStyle}>
+                <h3 style={cardTitleStyle}>{deviceId}</h3>
 
-            <p style={metricStyle}>
-              <strong>Temperature:</strong>
-              <span className={getMetricStyle(temperature, 'temperature')}>
-                {temperature.toFixed(2)} °C
-              </span>
-            </p>
+                <p style={metricStyle}>
+                  <strong>Temperature:</strong>
+                  <span className={getMetricStyle(temperature, 'temperature')}>
+                    {temperature.toFixed(2)} °C
+                  </span>
+                </p>
 
-            <p style={metricStyle}>
-              <strong>Pressure:</strong>
-              <span className={getMetricStyle(pressure, 'pressure')}>
-                {pressure.toFixed(2)} hPa
-              </span>
-            </p>
+                <p style={metricStyle}>
+                  <strong>Pressure:</strong>
+                  <span className={getMetricStyle(pressure, 'pressure')}>
+                    {pressure.toFixed(2)} hPa
+                  </span>
+                </p>
 
-            <p style={metricStyle}>
-              <strong>Current:</strong>
-              <span className={getMetricStyle(current, 'current')}>
-                {current.toFixed(2)} A
-              </span>
-            </p>
+                <p style={metricStyle}>
+                  <strong>Current:</strong>
+                  <span className={getMetricStyle(current, 'current')}>
+                    {current.toFixed(2)} A
+                  </span>
+                </p>
 
-            <MotorControl />
-            <Link to={`/device/${deviceId}`} style={{ textDecoration: 'none', color: 'blue', marginTop: '10px', display: 'block' }}>
-              View Analytics
-            </Link>
-          </div>
-        );
-      })}
+                <MotorControl />
+                <Link to={`/device/${deviceId}`} style={{ textDecoration: 'none', color: 'blue', marginTop: '10px', display: 'block' }}>
+                  View Analytics
+                </Link>
+              </div>
+            );
+          })}
+      </div>
     </div>
   );
 }

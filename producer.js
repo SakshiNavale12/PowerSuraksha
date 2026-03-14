@@ -25,6 +25,13 @@ function getBiasedCurrent() {
   return (20.1 + Math.random() * 4.9).toFixed(2);
 }
 
+const DEVICE_CONFIG = [
+  { prefix: 'motor', count: 100 },
+  { prefix: 'pump', count: 50 },
+  { prefix: 'generator', count: 50 },
+  { prefix: 'compressor', count: 20 },
+];
+
 const sendMotorData = async () => {
   try {
     await producer.connect();
@@ -32,47 +39,51 @@ const sendMotorData = async () => {
 
     setInterval(async () => {
       const messages = [];
-      const updates = {}; 
+      const updates = {};
 
       const baseRef = db.ref('motorData');
 
-      for (let i = 1; i <= 100; i++) {
-        const data = {
-          deviceId: `motor-${i}`,
-          temperature: parseFloat((40 + Math.random() * 55).toFixed(2)),
-          pressure: parseFloat((900 + Math.random() * 200).toFixed(2)),
-          current: parseFloat(getBiasedCurrent()),
-          timestamp: new Date().toISOString(),
-          createdAt: admin.database.ServerValue.TIMESTAMP,
-        };
+      for (const { prefix, count } of DEVICE_CONFIG) {
+        for (let i = 1; i <= count; i++) {
+          const data = {
+            deviceId: `${prefix}-${i}`,
+            temperature: parseFloat((40 + Math.random() * 55).toFixed(2)),
+            pressure: parseFloat((900 + Math.random() * 200).toFixed(2)),
+            current: parseFloat(getBiasedCurrent()),
+            timestamp: new Date().toISOString(),
+            createdAt: admin.database.ServerValue.TIMESTAMP,
+          };
 
-        const pushKey = baseRef.push().key;
-        updates[`motorData/${pushKey}`] = data;
+          const pushKey = baseRef.push().key;
+          updates[`motorData/${pushKey}`] = data;
 
-        messages.push({
-          value: JSON.stringify({
-            ...data,
-            source: "realtime",
-            rtdbKey: pushKey,
-            batchId: Date.now()
-          })
-        });
+          messages.push({
+            value: JSON.stringify({
+              ...data,
+              source: "realtime",
+              rtdbKey: pushKey,
+              batchId: Date.now()
+            })
+          });
+        }
       }
 
-      try {
-        await db.ref().update(updates);
-        console.info(`Stored ${Object.keys(updates).length} records in Realtime DB`);
+      // Firebase write (non-blocking — Kafka runs even if Firebase fails)
+      db.ref().update(updates)
+        .then(() => console.info(`Stored ${Object.keys(updates).length} records in Realtime DB`))
+        .catch(err => console.warn("Firebase write failed (non-critical):", err.message));
 
+      // Always send to Kafka regardless of Firebase status
+      try {
         await producer.send({
           topic: config.kafka.topic,
           messages,
         });
-
         console.info(`Sent batch of ${messages.length} motor readings at ${new Date().toLocaleTimeString()}`);
       } catch (err) {
-        console.error("Error in batch processing:", err);
+        console.error("Error sending to Kafka:", err);
       }
-    }, 2000); 
+    }, 2000);
   } catch (err) {
     console.error("Error starting producer:", err);
     process.exit(1);

@@ -8,6 +8,6 @@ module.exports = {
     groupId: "motor-group",
   },
   firebase: {
-    databaseURL:"https://hack-b2700-default-rtdb.asia-southeast1.firebasedatabase.app"
+    databaseURL:"https://megahack-ee214-default-rtdb.asia-southeast1.firebasedatabase.app"
   }
 };

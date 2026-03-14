@@ -1,7 +1,7 @@
 const { Kafka } = require("kafkajs");
 const config = require("./config");
 const WebSocket = require("ws");
-const KMeans = require("ml-kmeans");
+const { kmeans: KMeans } = require("ml-kmeans");
 const admin = require('firebase-admin');
 
 if (!admin.apps.length) {
@@ -51,7 +51,11 @@ const FirebaseUtils = {
 
       let query = motorDataRef.orderByChild('timestamp').startAt(hoursAgo.toISOString());
 
-      const snapshot = await query.get();
+      // Add a timeout to prevent hanging if Firebase is unavailable
+      const snapshot = await Promise.race([
+        query.get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase DB timeout')), 3000))
+      ]);
       const historicalData = [];
 
       if (snapshot.exists()) {
@@ -67,7 +71,7 @@ const FirebaseUtils = {
       console.info(`Fetched ${historicalData.length} historical records from Firebase`);
       return historicalData;
     } catch (error) {
-      console.error("Error fetching historical data:", error);
+      console.error("Error fetching historical data:", error.message || error);
       return [];
     }
   },
