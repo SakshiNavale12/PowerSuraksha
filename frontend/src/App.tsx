@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import LandingPage from './components/landing/LandingPage';
 import './firebase-config';
 
 function AppLayout() {
@@ -26,9 +27,10 @@ function AppLayout() {
   if (!user) {
     return (
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
