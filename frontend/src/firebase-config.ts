@@ -5,7 +5,7 @@ import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: "AIzaSyCztFtDtbOmcXojRvc6ZijjYZMTl7y-plc",
   authDomain: "megahack-ee214.firebaseapp.com",
-  databaseURL: "https://megahack-ee214-default-rtdb.firebaseio.com",
+  databaseURL: "https://megahack-ee214-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "megahack-ee214",
   storageBucket: "megahack-ee214.firebasestorage.app",
   messagingSenderId: "1001742119207",
