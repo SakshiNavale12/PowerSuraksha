@@ -3,6 +3,7 @@ import { useRealtimeMotorData } from '../../hooks/useRealtimeMotorData';
 import MotorControl from './MotorControl';
 import { Link } from 'react-router-dom';
 import { useExcludedDevices } from '../../context/ExcludedDevicesContext';
+import { useAuth } from '../../context/AuthContext';
 
 const DEVICE_TYPES = [
   { label: 'All Devices', value: 'all' },
@@ -76,7 +77,11 @@ const getMetricStyle = (value: number, type: 'temperature' | 'pressure' | 'curre
 export default function Device() {
   const realtimeData = useRealtimeMotorData();
   const { excludedIds } = useExcludedDevices();
+  const { profile } = useAuth();
   const [selectedType, setSelectedType] = useState('all');
+
+  const isOperator = profile?.role === 'operator';
+  const assignedDevices = profile?.assignedDevices ?? [];
 
   if (Object.keys(realtimeData).length === 0) {
     return <div style={{ padding: '20px' }}>Loading device data...</div>;
@@ -98,7 +103,9 @@ export default function Device() {
             minWidth: '180px',
           }}
         >
-          {DEVICE_TYPES.map((type) => (
+          {DEVICE_TYPES.filter(type =>
+            type.value === 'all' || !isOperator || assignedDevices.includes(type.value)
+          ).map((type) => (
             <option key={type.value} value={type.value}>{type.label}</option>
           ))}
         </select>
@@ -106,6 +113,7 @@ export default function Device() {
       <div style={containerStyle}>
         {Object.entries(realtimeData)
           .filter(([deviceId]) => !excludedIds.includes(deviceId))
+          .filter(([deviceId]) => !isOperator || assignedDevices.some(type => deviceId.startsWith(type + '-')))
           .filter(([deviceId]) => selectedType === 'all' || deviceId.startsWith(selectedType + '-'))
           .map(([deviceId, data]) => {
             const temperature = parseFloat(data.temperature);

@@ -17,6 +17,7 @@ interface UserProfile {
   email: string;
   name: string;
   role: Role;
+  assignedDevices?: string[];
 }
 
 interface AuthContextType {
@@ -24,7 +25,7 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role: Role) => Promise<void>;
+  register: (email: string, password: string, name: string, role: Role, assignedDevices?: string[]) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
 }
@@ -54,9 +55,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const register = async (email: string, password: string, name: string, role: Role) => {
+  const register = async (email: string, password: string, name: string, role: Role, assignedDevices?: string[]) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const userProfile: UserProfile = { uid: cred.user.uid, email, name, role };
+    if (role === 'operator' && assignedDevices) {
+      userProfile.assignedDevices = assignedDevices;
+    }
     await setDoc(doc(db, 'users', cred.user.uid), userProfile);
     setProfile(userProfile);
   };
@@ -70,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{
       user, profile, loading,
       login, register, logout,
-      isAdmin: profile?.role === 'admin'
+      isAdmin: profile?.role === 'admin',
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,4 +1,5 @@
 import { useAggregatedMotorData } from '../../hooks/useAggregatedMotorData';
+import { useAuth } from '../../context/AuthContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ChartProps {
@@ -8,14 +9,19 @@ interface ChartProps {
 
 export default function CurrentChart({ data, dataKey = 'current' }: ChartProps) {
   const aggregatedData = useAggregatedMotorData();
+  const { profile } = useAuth();
+  const isOperator = profile?.role === 'operator';
+  const assignedDevices = profile?.assignedDevices ?? [];
 
   let chartData = data;
   if (!chartData) {
     const { metrics } = aggregatedData;
-    chartData = Object.keys(metrics).map((deviceId) => ({
-      name: deviceId,
-      [dataKey]: parseFloat(metrics[deviceId].avgCurrent.toFixed(2)),
-    }));
+    chartData = Object.keys(metrics)
+      .filter(deviceId => !isOperator || assignedDevices.some(t => deviceId.startsWith(t + '-')))
+      .map((deviceId) => ({
+        name: deviceId,
+        [dataKey]: parseFloat(metrics[deviceId].avgCurrent.toFixed(2)),
+      }));
   }
 
   return (
